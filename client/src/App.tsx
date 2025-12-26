@@ -9,6 +9,9 @@ import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
 import Debts from "@/pages/debts";
 import Partners from "@/pages/partners";
+import Profit from "@/pages/profit";
+import Reports from "@/pages/reports";
+import Expenses from "@/pages/expenses";
 
 function Router() {
   return (
@@ -18,9 +21,9 @@ function Router() {
       <Route path="/sales" component={Sales} />
       <Route path="/debts" component={Debts} />
       <Route path="/partners" component={Partners} />
-      {/* Fallback to Dashboard for now for unimplemented routes */}
-      <Route path="/profit" component={Partners} /> 
-      <Route path="/reports" component={Dashboard} />
+      <Route path="/profit" component={Profit} />
+      <Route path="/reports" component={Reports} />
+      <Route path="/expenses" component={Expenses} />
       
       <Route component={NotFound} />
     </Switch>
