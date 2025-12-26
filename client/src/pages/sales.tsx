@@ -1,5 +1,5 @@
 import { Layout } from "@/components/layout/layout";
-import { usePurchases, useSales, useCreateSale, useUpdateSale } from "@/hooks/useApi";
+import { usePurchases, useSales, useCreateSale } from "@/hooks/useApi";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Invoice } from "@/components/sales/invoice";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const saleSchema = z.object({
   customerName: z.string().min(1, "نام مشتری الزامی است"),
@@ -34,8 +36,9 @@ export default function Sales() {
   const createMutation = useCreateSale();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
-  const [cart, setCart] = useState<any[]>([]);
+  const [lastInvoice, setLastInvoice] = useState<any>(null);
   const [open, setOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("form");
 
   const form = useForm<SaleFormValues>({
     resolver: zodResolver(saleSchema),
@@ -46,7 +49,7 @@ export default function Sales() {
       model: selectedProduct?.model || "",
       serial: selectedProduct?.serial || "",
       color: selectedProduct?.color || "",
-      salePrice: selectedProduct?.unitPrice || "",
+      salePrice: "",
       quantity: "1",
       paidAmount: "",
     },
@@ -62,17 +65,36 @@ export default function Sales() {
       remainingAmount,
       quantity: parseInt(data.quantity),
     });
+    
+    // Show invoice
+    setLastInvoice({
+      customerName: data.customerName,
+      phone: data.phone || "",
+      date: data.date,
+      items: [{
+        model: data.model,
+        serial: data.serial,
+        color: data.color,
+        quantity: parseInt(data.quantity),
+        salePrice: parseFloat(data.salePrice),
+        totalPrice: parseFloat(totalPrice),
+      }],
+      paidAmount: parseFloat(data.paidAmount),
+      totalAmount: parseFloat(totalPrice),
+      remainingAmount: parseFloat(remainingAmount),
+    });
+
     form.reset();
     setSelectedProduct(null);
-    setOpen(false);
+    setActiveTab("invoice");
   };
 
-  const filteredProducts = purchases.filter(p =>
+  const filteredProducts = (purchases as any[]).filter(p =>
     p.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.serial?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalSales = sales.reduce((sum, s: any) => sum + parseFloat(s.totalPrice || 0), 0);
+  const totalSalesAmount = (sales as any[]).reduce((sum: number, s: any) => sum + parseFloat(s.totalPrice || 0), 0);
 
   return (
     <Layout title="فروش و صدور بل (POS)">
@@ -80,82 +102,91 @@ export default function Sales() {
         <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-900/50">
           <p className="text-sm text-muted-foreground mb-1">کل فروش‌های ثبت‌شده</p>
           <p className="text-2xl font-bold text-emerald-600">
-            ${totalSales.toLocaleString('en-US', { maximumFractionDigits: 2 })}
+            ${totalSalesAmount.toLocaleString('en-US', { maximumFractionDigits: 2 })}
           </p>
         </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left Side: Product Selection */}
-        <div className="flex-1 flex flex-col gap-4">
-          <Card className="flex-1 flex flex-col shadow-sm border-0 bg-muted/30">
-            <CardHeader className="pb-2">
-              <div className="relative">
-                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                  placeholder="جستجو جنس (نام، مدل، سریال)..." 
-                  className="pr-9 bg-background" 
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Card className="shadow-xl border-t-4 border-t-primary cursor-pointer hover:shadow-2xl transition-shadow mb-8">
+            <CardHeader className="pb-4 border-b">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <ShoppingCart className="w-5 h-5 text-primary" />
+                ثبت فروش جدید
+              </CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 p-4 pt-0 overflow-hidden">
-              <ScrollArea className="h-full pr-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {filteredProducts.map((product: any) => (
-                    <div 
-                      key={product.id} 
-                      className={`bg-background border rounded-xl p-4 cursor-pointer hover:border-primary/50 hover:shadow-md transition-all group ${selectedProduct?.id === product.id ? 'border-primary bg-primary/5' : ''}`}
-                      onClick={() => setSelectedProduct(product)}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <Badge variant="outline" className="bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                          {product.quantity} موجود
-                        </Badge>
-                        <span className="font-bold text-lg">${parseFloat(product.unitPrice || 0).toFixed(2)}</span>
-                      </div>
-                      <h3 className="font-medium truncate">{product.model}</h3>
-                      <p className="text-sm text-muted-foreground">{product.color} - {product.supplier}</p>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
+            <CardContent className="py-12 flex flex-col items-center justify-center text-center">
+              <ShoppingCart className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
+              <p className="text-muted-foreground font-medium">برای ثبت فروش و چاپ فاتورة کلیک کنید</p>
             </CardContent>
           </Card>
-        </div>
+        </DialogTrigger>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>ثبت فروش جدید و صدور فاتورة</DialogTitle>
+          </DialogHeader>
 
-        {/* Right Side: Checkout */}
-        <div className="w-full lg:w-[400px]">
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Card className="shadow-xl border-t-4 border-t-primary cursor-pointer hover:shadow-2xl transition-shadow h-full">
-                <CardHeader className="pb-4 border-b">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <ShoppingCart className="w-5 h-5 text-primary" />
-                    ثبت فروش جدید
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="py-12 flex flex-col items-center justify-center text-center">
-                  <ShoppingCart className="w-12 h-12 text-muted-foreground mb-4 opacity-50" />
-                  <p className="text-muted-foreground font-medium">برای ثبت فروش کلیک کنید</p>
-                </CardContent>
-              </Card>
-            </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>ثبت فروش جدید</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="form">فرم ثبت فروش</TabsTrigger>
+              <TabsTrigger value="invoice">فاتورة</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="form" className="space-y-4">
+              <div className="space-y-4 max-h-96 overflow-y-auto">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">انتخاب محصول:</label>
+                  <div className="relative mb-4">
+                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="جستجو نام یا مدل..." 
+                      className="pr-9" 
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  
                   {selectedProduct && (
-                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-900/50">
-                      <p className="text-sm font-medium text-blue-600 mb-1">محصول انتخاب‌شده:</p>
-                      <p className="font-bold">{selectedProduct.model} - {selectedProduct.color}</p>
-                      <p className="text-sm text-muted-foreground">قیمت خرید: ${parseFloat(selectedProduct.unitPrice || 0).toFixed(2)}</p>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-900/50 mb-4">
+                      <p className="text-sm font-medium text-blue-600 mb-2">✓ محصول انتخاب‌شده:</p>
+                      <div className="space-y-1">
+                        <p className="font-bold">{selectedProduct.model}</p>
+                        <p className="text-sm text-muted-foreground">رنگ: {selectedProduct.color}</p>
+                        <p className="text-sm text-muted-foreground">سریال: {selectedProduct.serial}</p>
+                        <p className="text-sm text-muted-foreground">موجودی: {selectedProduct.quantity}</p>
+                      </div>
                     </div>
                   )}
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                    {filteredProducts.map((product: any) => (
+                      <button
+                        key={product.id}
+                        onClick={() => {
+                          setSelectedProduct(product);
+                          form.setValue("model", product.model);
+                          form.setValue("serial", product.serial);
+                          form.setValue("color", product.color);
+                        }}
+                        className={`p-3 rounded-lg border-2 text-left transition-all ${
+                          selectedProduct?.id === product.id
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/50"
+                        }`}
+                      >
+                        <p className="font-medium text-sm">{product.model}</p>
+                        <p className="text-xs text-muted-foreground">{product.color}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField
                     control={form.control}
                     name="customerName"
@@ -203,9 +234,9 @@ export default function Sales() {
                     name="salePrice"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>قیمت فروش</FormLabel>
+                        <FormLabel>قیمت فروش (واحد)</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="0.00" {...field} />
+                          <Input type="number" placeholder="قیمت را وارد کنید..." step="0.01" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -226,6 +257,15 @@ export default function Sales() {
                     )}
                   />
 
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm text-muted-foreground mb-1">مجموع قابل پرداخت:</p>
+                    <p className="text-2xl font-bold">
+                      ${(
+                        (parseFloat(form.watch("salePrice") || "0") * parseInt(form.watch("quantity") || "1"))
+                      ).toFixed(2)}
+                    </p>
+                  </div>
+
                   <FormField
                     control={form.control}
                     name="paidAmount"
@@ -233,7 +273,7 @@ export default function Sales() {
                       <FormItem>
                         <FormLabel>مبلغ دریافتی</FormLabel>
                         <FormControl>
-                          <Input type="number" placeholder="0.00" {...field} />
+                          <Input type="number" placeholder="0.00" step="0.01" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -241,14 +281,71 @@ export default function Sales() {
                   />
 
                   <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                    {createMutation.isPending ? "درحال ثبت..." : "ثبت فروش"}
+                    {createMutation.isPending ? "درحال ثبت..." : "ثبت فروش و نمایش فاتورة"}
                   </Button>
                 </form>
               </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
+            </TabsContent>
+
+            <TabsContent value="invoice" className="space-y-4">
+              {lastInvoice ? (
+                <Invoice {...lastInvoice} invoiceNo={`INV-${Date.now()}`} />
+              ) : (
+                <div className="py-12 text-center text-muted-foreground">
+                  <ShoppingCart className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p>ابتدا فروش را ثبت کنید تا فاتورة نمایش داده شود</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </DialogContent>
+      </Dialog>
+
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle>فروش‌های اخیر</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-lg border overflow-hidden">
+            {(sales as any[]).length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <ShoppingCart className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>هنوز فروشی ثبت نشده است</p>
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-muted/50">
+                  <tr>
+                    <th className="text-right py-3 px-4">مشتری</th>
+                    <th className="text-right py-3 px-4">محصول</th>
+                    <th className="text-right py-3 px-4">مبلغ</th>
+                    <th className="text-right py-3 px-4">تاریخ</th>
+                    <th className="text-right py-3 px-4">وضعیت</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(sales as any[]).slice(0, 10).map((sale: any) => (
+                    <tr key={sale.id} className="border-t">
+                      <td className="py-3 px-4 font-medium">{sale.customerName}</td>
+                      <td className="py-3 px-4">{sale.model}</td>
+                      <td className="py-3 px-4 font-bold">${parseFloat(sale.totalPrice || 0).toFixed(2)}</td>
+                      <td className="py-3 px-4 text-muted-foreground text-xs">{sale.date}</td>
+                      <td className="py-3 px-4">
+                        <Badge
+                          variant={parseFloat(sale.remainingAmount || 0) > 0 ? "destructive" : "default"}
+                          className={parseFloat(sale.remainingAmount || 0) === 0 ? "bg-emerald-500 hover:bg-emerald-600" : ""}
+                        >
+                          {parseFloat(sale.remainingAmount || 0) > 0 ? "باقی‌دار" : "تکمیل"}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </Layout>
   );
 }
