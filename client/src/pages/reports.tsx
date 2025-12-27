@@ -22,7 +22,7 @@ export default function Reports() {
 خلاصه مالی:
 - کل فروش: $${totalSales.toFixed(2)}
 - کل مصارف: $${totalExpenses.toFixed(2)}
-- سود خالص: $${totalProfit.toFixed(2)}
+- فایده خالص: $${totalProfit.toFixed(2)}
 
 تفاصیل فروش‌ها:
 ${sales.map((s: any) => `- ${s.customerName}: $${parseFloat(s.totalPrice || 0).toFixed(2)} (${s.date})`).join('\n')}
@@ -83,7 +83,7 @@ ${expenses.map((e: any) => `- ${e.description}: $${parseFloat(e.amount || 0).toF
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">سود خالص</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">فایده خالص</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-emerald-600">${totalProfit.toLocaleString('en-US', { maximumFractionDigits: 2 })}</div>
@@ -106,19 +106,28 @@ ${expenses.map((e: any) => `- ${e.description}: $${parseFloat(e.amount || 0).toF
                   <TableRow>
                     <TableHead className="text-right">مشتری</TableHead>
                     <TableHead className="text-right">محصول</TableHead>
-                    <TableHead className="text-right">مبلغ</TableHead>
+                    <TableHead className="text-right">مبلغ آمد</TableHead>
+                    <TableHead className="text-right">مبلغ فروش</TableHead>
+                    <TableHead className="text-right">فایده خالص</TableHead>
                     <TableHead className="text-right">تاریخ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sales.map((sale: any) => (
+                  {sales.map((sale: any) => {
+                    const netProfit = parseFloat(sale.netProfit || 0);
+                    const costPrice = parseFloat(sale.costPrice || 0);
+                    const totalPrice = parseFloat(sale.totalPrice || 0);
+                    return (
                     <TableRow key={sale.id}>
                       <TableCell className="font-medium text-sm">{sale.customerName}</TableCell>
                       <TableCell className="text-sm">{sale.model}</TableCell>
-                      <TableCell className="text-sm font-bold">${parseFloat(sale.totalPrice || 0).toFixed(2)}</TableCell>
+                      <TableCell className="text-sm">${costPrice.toFixed(2)}</TableCell>
+                      <TableCell className="text-sm font-bold">${totalPrice.toFixed(2)}</TableCell>
+                      <TableCell className="text-sm text-emerald-600 font-bold">${netProfit.toFixed(2)}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{sale.date}</TableCell>
                     </TableRow>
-                  ))}
+                  );
+                  })}
                 </TableBody>
               </Table>
             </div>

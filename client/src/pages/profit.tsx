@@ -41,7 +41,7 @@ export default function Profit() {
     .slice(-30);
 
   return (
-    <Layout title="گزارش سود خالص و تحلیل">
+    <Layout title="گزارش فایده خالص و تحلیل">
       {isLoading ? (
         <div className="flex items-center justify-center h-96">
           <p className="text-muted-foreground">درحال بارگیری...</p>
@@ -53,7 +53,7 @@ export default function Profit() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                   <TrendingUp className="w-4 h-4" />
-                  سود خالص
+                  فایده خالص
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -129,7 +129,7 @@ export default function Profit() {
                   <span className="font-bold text-rose-600">${totalExpenses.toLocaleString('en-US', { maximumFractionDigits: 2 })}</span>
                 </div>
                 <div className="flex justify-between p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border-2 border-emerald-200 dark:border-emerald-900/50">
-                  <span className="font-bold">سود خالص:</span>
+                  <span className="font-bold">فایده خالص:</span>
                   <span className="font-bold text-2xl text-emerald-700 dark:text-emerald-300">${totalProfit.toLocaleString('en-US', { maximumFractionDigits: 2 })}</span>
                 </div>
               </CardContent>
@@ -161,7 +161,7 @@ export default function Profit() {
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-sm text-muted-foreground">سهم سود خالص از درآمد</p>
+                  <p className="text-sm text-muted-foreground">سهم فایده خالص از درآمد</p>
                   <div className="flex items-center gap-2">
                     <div className="flex-1 h-2 bg-blue-200 rounded-full overflow-hidden">
                       <div className="h-full bg-blue-600" style={{ width: `${profitMargin}%` }}></div>

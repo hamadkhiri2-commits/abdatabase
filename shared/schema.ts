@@ -20,6 +20,7 @@ export const purchases = pgTable("purchases", {
 
 export const sales = pgTable("sales", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  invoiceNo: varchar("invoice_no").notNull().unique(),
   customerName: text("customer_name").notNull(),
   phone: varchar("phone"),
   date: date("date").notNull(),
@@ -29,6 +30,8 @@ export const sales = pgTable("sales", {
   salePrice: numeric("sale_price", { precision: 10, scale: 2 }).notNull(),
   quantity: integer("quantity").notNull(),
   totalPrice: numeric("total_price", { precision: 12, scale: 2 }).notNull(),
+  costPrice: numeric("cost_price", { precision: 12, scale: 2 }).default("0"),
+  netProfit: numeric("net_profit", { precision: 12, scale: 2 }).default("0"),
   paidAmount: numeric("paid_amount", { precision: 12, scale: 2 }).default("0"),
   remainingAmount: numeric("remaining_amount", { precision: 12, scale: 2 }).default("0"),
 });

@@ -60,7 +60,7 @@ export default function Dashboard() {
               className="border-l-4 border-l-rose-500"
             />
             <StatsCard
-              title="سود خالص"
+              title="فایده خالص"
               value={`$${parseFloat(totalProfit || 0).toLocaleString('en-US', { maximumFractionDigits: 2 })}`}
               icon={TrendingUp}
               trend="up"

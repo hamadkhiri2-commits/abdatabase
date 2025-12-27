@@ -8,29 +8,36 @@ interface InvoiceItem {
   color: string;
   quantity: number;
   salePrice: number;
+  costPrice: number;
   totalPrice: number;
+  totalCost: number;
+  netProfit: number;
 }
 
 interface InvoiceProps {
+  invoiceNo: string;
   customerName: string;
   phone: string;
   date: string;
   items: InvoiceItem[];
   paidAmount: number;
   totalAmount: number;
+  totalCost: number;
+  totalProfit: number;
   remainingAmount: number;
-  invoiceNo?: string;
 }
 
 export function Invoice({
+  invoiceNo,
   customerName,
   phone,
   date,
   items,
   paidAmount,
   totalAmount,
+  totalCost,
+  totalProfit,
   remainingAmount,
-  invoiceNo,
 }: InvoiceProps) {
   const handlePrint = () => {
     window.print();
@@ -50,7 +57,7 @@ export function Invoice({
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-primary">فاتورة فروش</h1>
             <p className="text-muted-foreground">فروشگاه موبایل حاجی عبدالرحمن</p>
-            <p className="text-sm text-muted-foreground">شماره فاتورة: {invoiceNo || "---"}</p>
+            <p className="text-sm text-muted-foreground">شماره فاتورة: {invoiceNo}</p>
           </div>
         </CardHeader>
 
@@ -81,11 +88,12 @@ export function Invoice({
               <thead>
                 <tr className="border-b-2 border-t-2 py-2">
                   <th className="text-right py-3 px-2">ردیف</th>
-                  <th className="text-right py-3 px-2">نام محصول</th>
-                  <th className="text-right py-3 px-2">مدل / رنگ</th>
+                  <th className="text-right py-3 px-2">محصول</th>
                   <th className="text-right py-3 px-2">سریال</th>
+                  <th className="text-right py-3 px-2">رنگ</th>
                   <th className="text-right py-3 px-2">تعداد</th>
-                  <th className="text-right py-3 px-2">قیمت واحد</th>
+                  <th className="text-right py-3 px-2">قیمت آمد</th>
+                  <th className="text-right py-3 px-2">قیمت فروش</th>
                   <th className="text-right py-3 px-2">مجموع</th>
                 </tr>
               </thead>
@@ -93,12 +101,13 @@ export function Invoice({
                 {items.map((item, index) => (
                   <tr key={index} className="border-b py-2">
                     <td className="text-right py-3 px-2 font-medium">{index + 1}</td>
-                    <td className="text-right py-3 px-2">{item.model}</td>
-                    <td className="text-right py-3 px-2 text-muted-foreground text-xs">
-                      {item.color}
-                    </td>
+                    <td className="text-right py-3 px-2 font-semibold">{item.model}</td>
                     <td className="text-right py-3 px-2 font-mono text-xs">{item.serial}</td>
+                    <td className="text-right py-3 px-2 text-muted-foreground text-xs">{item.color}</td>
                     <td className="text-right py-3 px-2">{item.quantity}</td>
+                    <td className="text-right py-3 px-2 text-muted-foreground">
+                      ${item.costPrice.toFixed(2)}
+                    </td>
                     <td className="text-right py-3 px-2 font-bold">
                       ${item.salePrice.toFixed(2)}
                     </td>
@@ -112,25 +121,53 @@ export function Invoice({
           </div>
 
           {/* Totals */}
-          <div className="space-y-3 mb-8 max-w-xs mr-0">
-            <div className="flex justify-between text-lg border-b pb-2">
-              <span className="font-medium">مجموع:</span>
-              <span className="font-bold">${totalAmount.toFixed(2)}</span>
-            </div>
-
-            <div className="flex justify-between text-lg border-b pb-2">
-              <span className="font-medium text-emerald-600">رسید شده:</span>
-              <span className="font-bold text-emerald-600">${paidAmount.toFixed(2)}</span>
-            </div>
-
-            {remainingAmount > 0 && (
-              <div className="flex justify-between text-lg border-b pb-2">
-                <span className="font-medium text-rose-600">باقی‌مانده:</span>
-                <span className="font-bold text-rose-600 text-xl">
-                  ${remainingAmount.toFixed(2)}
-                </span>
+          <div className="grid grid-cols-2 gap-8 mb-8">
+            <div className="space-y-3">
+              <h3 className="font-semibold border-b pb-2">خلاصة مالی</h3>
+              
+              <div className="flex justify-between text-sm">
+                <span>کل قیمت آمد:</span>
+                <span className="font-bold">${totalCost.toFixed(2)}</span>
               </div>
-            )}
+
+              <div className="flex justify-between text-lg border-t pt-2">
+                <span className="font-medium">کل فروش:</span>
+                <span className="font-bold">${totalAmount.toFixed(2)}</span>
+              </div>
+
+              <div className="flex justify-between text-lg border-b pb-2">
+                <span className="font-medium text-emerald-600">فایده خالص:</span>
+                <span className="font-bold text-emerald-600">${totalProfit.toFixed(2)}</span>
+              </div>
+
+              <div className="text-xs text-muted-foreground">
+                درصد فایده: {((totalProfit / totalAmount) * 100).toFixed(1)}%
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h3 className="font-semibold border-b pb-2">وضعیت پرداخت</h3>
+              
+              <div className="flex justify-between text-lg">
+                <span className="font-medium text-emerald-600">رسید شده:</span>
+                <span className="font-bold text-emerald-600">${paidAmount.toFixed(2)}</span>
+              </div>
+
+              {remainingAmount > 0 && (
+                <div className="flex justify-between text-lg border-t pt-2">
+                  <span className="font-medium text-rose-600">باقی‌مانده:</span>
+                  <span className="font-bold text-rose-600 text-xl">
+                    ${remainingAmount.toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              {remainingAmount === 0 && (
+                <div className="py-2 px-3 bg-emerald-100 text-emerald-700 rounded text-sm font-medium">
+                  ✓ کامل پرداخت شده است
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Notes */}
