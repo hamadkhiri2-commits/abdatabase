@@ -57,6 +57,13 @@ export const expenses = pgTable("expenses", {
   amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
 });
 
+export const dailyExpenses = pgTable("daily_expenses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  date: date("date").notNull(),
+  description: text("description").notNull(),
+  amount: numeric("amount", { precision: 10, scale: 2 }).notNull(),
+});
+
 export const profits = pgTable("profits", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   saleId: varchar("sale_id").notNull(),
@@ -72,6 +79,7 @@ export const insertSaleSchema = createInsertSchema(sales);
 export const insertCustomerSchema = createInsertSchema(customers);
 export const insertPartnerSchema = createInsertSchema(partners);
 export const insertExpenseSchema = createInsertSchema(expenses);
+export const insertDailyExpenseSchema = createInsertSchema(dailyExpenses);
 
 export type Purchase = typeof purchases.$inferSelect;
 export type InsertPurchase = z.infer<typeof insertPurchaseSchema>;
@@ -87,5 +95,8 @@ export type InsertPartner = z.infer<typeof insertPartnerSchema>;
 
 export type Expense = typeof expenses.$inferSelect;
 export type InsertExpense = z.infer<typeof insertExpenseSchema>;
+
+export type DailyExpense = typeof dailyExpenses.$inferSelect;
+export type InsertDailyExpense = z.infer<typeof insertDailyExpenseSchema>;
 
 export type Profit = typeof profits.$inferSelect;
