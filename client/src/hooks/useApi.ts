@@ -224,6 +224,61 @@ export function useDeleteExpense() {
   });
 }
 
+// ============= DAILY EXPENSES =============
+export function useDailyExpenses() {
+  return useQuery({
+    queryKey: ["/api/daily-expenses"],
+    queryFn: getQueryFn({ on401: "throw" }),
+  });
+}
+
+export function useCreateDailyExpense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const res = await apiRequest("POST", "/api/daily-expenses", data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/summary"] });
+      toast.success("مصرف روزمره ثبت شد");
+    },
+    onError: (error: any) => toast.error(error.message),
+  });
+}
+
+export function useUpdateDailyExpense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: any }) => {
+      const res = await apiRequest("PUT", `/api/daily-expenses/${id}`, data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/summary"] });
+      toast.success("مصرف روزمره به‌روزرسانی شد");
+    },
+    onError: (error: any) => toast.error(error.message),
+  });
+}
+
+export function useDeleteDailyExpense() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest("DELETE", `/api/daily-expenses/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/daily-expenses"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/analytics/summary"] });
+      toast.success("مصرف روزمره حذف شد");
+    },
+    onError: (error: any) => toast.error(error.message),
+  });
+}
+
 // ============= ANALYTICS =============
 export function useAnalyticsSummary() {
   return useQuery({

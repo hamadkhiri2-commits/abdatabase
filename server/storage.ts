@@ -122,6 +122,27 @@ export async function deleteExpense(id: string) {
   return db.delete(schema.expenses).where(eq(schema.expenses.id, id)).returning();
 }
 
+// ============= DAILY EXPENSES =============
+export async function createDailyExpense(data: schema.InsertDailyExpense) {
+  return db.insert(schema.dailyExpenses).values(data).returning();
+}
+
+export async function getAllDailyExpenses() {
+  return db.select().from(schema.dailyExpenses).orderBy(desc(schema.dailyExpenses.date));
+}
+
+export async function getDailyExpenseById(id: string) {
+  return db.select().from(schema.dailyExpenses).where(eq(schema.dailyExpenses.id, id));
+}
+
+export async function updateDailyExpense(id: string, data: Partial<schema.InsertDailyExpense>) {
+  return db.update(schema.dailyExpenses).set(data).where(eq(schema.dailyExpenses.id, id)).returning();
+}
+
+export async function deleteDailyExpense(id: string) {
+  return db.delete(schema.dailyExpenses).where(eq(schema.dailyExpenses.id, id)).returning();
+}
+
 // ============= ANALYTICS =============
 // Note: Analytics functions calculate totals from database queries
 // These will be fully implemented in future iterations
@@ -136,13 +157,28 @@ export async function getTotalExpenses(): Promise<number> {
   return expenses.reduce((sum, exp) => sum + parseFloat(exp.amount || "0"), 0);
 }
 
+export async function getTotalDailyExpenses(): Promise<number> {
+  const dailyExpenses = await getAllDailyExpenses();
+  return dailyExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount || "0"), 0);
+}
+
 export async function getTotalDebts(): Promise<number> {
   const sales = await getAllSales();
   return sales.reduce((sum, sale) => sum + parseFloat(sale.remainingAmount || "0"), 0);
+}
+
+export async function getTotalCost(): Promise<number> {
+  const sales = await getAllSales();
+  return sales.reduce((sum, sale) => sum + parseFloat(sale.costPrice || "0"), 0);
 }
 
 export async function calculateTotalProfit(): Promise<number> {
   const totalSales = await getTotalSales();
   const totalExpenses = await getTotalExpenses();
   return totalSales - totalExpenses;
+}
+
+export async function calculateTotalNetProfit(): Promise<number> {
+  const sales = await getAllSales();
+  return sales.reduce((sum, sale) => sum + parseFloat(sale.netProfit || "0"), 0);
 }

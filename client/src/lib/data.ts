@@ -5,7 +5,9 @@ import {
   CreditCard, 
   PieChart, 
   Users, 
-  TrendingUp 
+  TrendingUp,
+  Receipt,
+  BarChart3
 } from "lucide-react";
 
 export const menuItems = [
@@ -14,6 +16,8 @@ export const menuItems = [
   { icon: ShoppingCart, label: "فروش و بیجک", href: "/sales" },
   { icon: TrendingUp, label: "سود خالص", href: "/profit" },
   { icon: CreditCard, label: "باقیات (قرض)", href: "/debts" },
+  { icon: Receipt, label: "مصارف روزمره", href: "/daily-expenses" },
+  { icon: BarChart3, label: "گزارش مفصل", href: "/daily-reports" },
   { icon: PieChart, label: "گزارشات عمومی", href: "/reports" },
   { icon: Users, label: "شرکا و تقسیم", href: "/partners" },
 ];

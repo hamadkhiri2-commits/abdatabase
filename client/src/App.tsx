@@ -12,6 +12,8 @@ import Partners from "@/pages/partners";
 import Profit from "@/pages/profit";
 import Reports from "@/pages/reports";
 import Expenses from "@/pages/expenses";
+import DailyExpenses from "@/pages/daily-expenses";
+import DailyReports from "@/pages/daily-reports";
 
 function Router() {
   return (
@@ -23,7 +25,9 @@ function Router() {
       <Route path="/partners" component={Partners} />
       <Route path="/profit" component={Profit} />
       <Route path="/reports" component={Reports} />
+      <Route path="/daily-reports" component={DailyReports} />
       <Route path="/expenses" component={Expenses} />
+      <Route path="/daily-expenses" component={DailyExpenses} />
       
       <Route component={NotFound} />
     </Switch>

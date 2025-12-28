@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import * as storage from "./storage";
-import { insertPurchaseSchema, insertSaleSchema, insertCustomerSchema, insertPartnerSchema, insertExpenseSchema } from "@shared/schema";
+import { insertPurchaseSchema, insertSaleSchema, insertCustomerSchema, insertPartnerSchema, insertExpenseSchema, insertDailyExpenseSchema } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -242,19 +242,72 @@ export async function registerRoutes(
     }
   });
 
+  // ============= DAILY EXPENSES =============
+  app.post("/api/daily-expenses", async (req, res) => {
+    try {
+      const data = insertDailyExpenseSchema.parse(req.body);
+      const result = await storage.createDailyExpense(data);
+      res.json(result[0]);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/daily-expenses", async (req, res) => {
+    try {
+      const dailyExpenses = await storage.getAllDailyExpenses();
+      res.json(dailyExpenses);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/daily-expenses/:id", async (req, res) => {
+    try {
+      const dailyExpense = await storage.getDailyExpenseById(req.params.id);
+      res.json(dailyExpense[0] || null);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.put("/api/daily-expenses/:id", async (req, res) => {
+    try {
+      const result = await storage.updateDailyExpense(req.params.id, req.body);
+      res.json(result[0]);
+    } catch (error: any) {
+      res.status(400).json({ error: error.message });
+    }
+  });
+
+  app.delete("/api/daily-expenses/:id", async (req, res) => {
+    try {
+      await storage.deleteDailyExpense(req.params.id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // ============= ANALYTICS =============
   app.get("/api/analytics/summary", async (req, res) => {
     try {
       const totalSales = await storage.getTotalSales();
       const totalExpenses = await storage.getTotalExpenses();
+      const totalDailyExpenses = await storage.getTotalDailyExpenses();
       const totalDebts = await storage.getTotalDebts();
+      const totalCost = await storage.getTotalCost();
       const totalProfit = await storage.calculateTotalProfit();
+      const totalNetProfit = await storage.calculateTotalNetProfit();
 
       res.json({
         totalSales,
         totalExpenses,
+        totalDailyExpenses,
         totalDebts,
+        totalCost,
         totalProfit,
+        totalNetProfit,
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
