@@ -18,7 +18,6 @@ export const menuItems = [
   { icon: CreditCard, label: "باقیات (قرض)", href: "/debts" },
   { icon: Receipt, label: "مصارف روزمره", href: "/daily-expenses" },
   { icon: BarChart3, label: "گزارش مفصل", href: "/daily-reports" },
-  { icon: PieChart, label: "گزارشات عمومی", href: "/reports" },
   { icon: Users, label: "شرکا و تقسیم", href: "/partners" },
 ];
 

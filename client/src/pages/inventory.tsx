@@ -6,7 +6,7 @@ import { Plus, Search, Download, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -38,7 +38,7 @@ export default function Inventory() {
     defaultValues: {
       supplier: "",
       date: new Date().toISOString().split('T')[0],
-      billNo: "",
+      billNo: `BIL-${Date.now()}`,
       model: "",
       serial: "",
       color: "",
@@ -47,6 +47,17 @@ export default function Inventory() {
       totalPrice: "",
     },
   });
+
+  // Watch unitPrice and quantity for auto-calculation
+  const unitPrice = form.watch("unitPrice");
+  const quantity = form.watch("quantity");
+  
+  useEffect(() => {
+    if (unitPrice && quantity) {
+      const total = (parseFloat(unitPrice) * parseInt(quantity)).toFixed(2);
+      form.setValue("totalPrice", total);
+    }
+  }, [unitPrice, quantity, form]);
 
   const onSubmit = async (data: PurchaseFormValues) => {
     await createMutation.mutateAsync({
@@ -63,8 +74,8 @@ export default function Inventory() {
     p.supplier?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalStock = purchases.reduce((sum, p: any) => sum + (p.quantity || 0), 0);
-  const totalValue = purchases.reduce((sum, p: any) => sum + parseFloat(p.totalPrice || 0), 0);
+  const totalStock = (purchases as any[]).reduce((sum: number, p: any) => sum + (p.quantity || 0), 0);
+  const totalValue = (purchases as any[]).reduce((sum: number, p: any) => sum + parseFloat(p.totalPrice || 0), 0);
 
   return (
     <Layout title="مدیریت گدام (انبار)">
@@ -139,7 +150,7 @@ export default function Inventory() {
                           <FormItem>
                             <FormLabel>شماره بل</FormLabel>
                             <FormControl>
-                              <Input placeholder="B-001" {...field} />
+                              <Input placeholder="B-001" {...field} disabled className="bg-muted" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -223,7 +234,7 @@ export default function Inventory() {
                           <FormItem>
                             <FormLabel>قیمت مجموعی</FormLabel>
                             <FormControl>
-                              <Input type="number" placeholder="4750" {...field} />
+                              <Input type="number" placeholder="4750" {...field} disabled className="bg-muted" />
                             </FormControl>
                             <FormMessage />
                           </FormItem>

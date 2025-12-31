@@ -92,8 +92,7 @@ export function Invoice({
                   <th className="text-right py-3 px-2">سریال</th>
                   <th className="text-right py-3 px-2">رنگ</th>
                   <th className="text-right py-3 px-2">تعداد</th>
-                  <th className="text-right py-3 px-2">قیمت آمد</th>
-                  <th className="text-right py-3 px-2">قیمت فروش</th>
+                  <th className="text-right py-3 px-2">قیمت واحد</th>
                   <th className="text-right py-3 px-2">مجموع</th>
                 </tr>
               </thead>
@@ -105,13 +104,10 @@ export function Invoice({
                     <td className="text-right py-3 px-2 font-mono text-xs">{item.serial}</td>
                     <td className="text-right py-3 px-2 text-muted-foreground text-xs">{item.color}</td>
                     <td className="text-right py-3 px-2">{item.quantity}</td>
-                    <td className="text-right py-3 px-2 text-muted-foreground">
-                      ${item.costPrice.toFixed(2)}
-                    </td>
                     <td className="text-right py-3 px-2 font-bold">
                       ${item.salePrice.toFixed(2)}
                     </td>
-                    <td className="text-right py-3 px-2 font-bold">
+                    <td className="text-right py-3 px-2 font-bold text-lg">
                       ${item.totalPrice.toFixed(2)}
                     </td>
                   </tr>
@@ -124,13 +120,8 @@ export function Invoice({
           <div className="grid grid-cols-2 gap-8 mb-8">
             <div className="space-y-3">
               <h3 className="font-semibold border-b pb-2">خلاصة مالی</h3>
-              
-              <div className="flex justify-between text-sm">
-                <span>کل قیمت آمد:</span>
-                <span className="font-bold">${totalCost.toFixed(2)}</span>
-              </div>
 
-              <div className="flex justify-between text-lg border-t pt-2">
+              <div className="flex justify-between text-lg border-b pb-2">
                 <span className="font-medium">کل فروش:</span>
                 <span className="font-bold">${totalAmount.toFixed(2)}</span>
               </div>

@@ -9,22 +9,23 @@ export default function Profit() {
   const { data: sales = [] } = useSales();
   const { data: expenses = [] } = useExpenses();
 
-  const totalSales = parseFloat(analytics.totalSales || 0);
+  const totalSales = (sales as any[]).reduce((sum, s) => sum + parseFloat(s.totalPrice || 0), 0);
+  const totalCost = (sales as any[]).reduce((sum, s) => sum + parseFloat(s.costPrice || 0), 0);
+  const totalProfit = totalSales - totalCost;
   const totalExpenses = parseFloat(analytics.totalExpenses || 0);
-  const totalProfit = parseFloat(analytics.totalProfit || 0);
 
   const profitMargin = totalSales > 0 ? ((totalProfit / totalSales) * 100).toFixed(2) : 0;
 
   // Group data by date for chart
   const dailyData: { [key: string]: { sales: number; expenses: number } } = {};
   
-  sales.forEach((sale: any) => {
+  (sales as any[]).forEach((sale: any) => {
     const date = sale.date;
     if (!dailyData[date]) dailyData[date] = { sales: 0, expenses: 0 };
     dailyData[date].sales += parseFloat(sale.totalPrice || 0);
   });
 
-  expenses.forEach((exp: any) => {
+  (expenses as any[]).forEach((exp: any) => {
     const date = exp.date;
     if (!dailyData[date]) dailyData[date] = { sales: 0, expenses: 0 };
     dailyData[date].expenses += parseFloat(exp.amount || 0);
@@ -103,7 +104,7 @@ export default function Profit() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="date" />
                     <YAxis />
-                    <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+                    <Tooltip formatter={(value: any) => `$${typeof value === 'number' ? value.toFixed(2) : value}`} />
                     <Legend />
                     <Bar dataKey="فروش" fill="#10b981" />
                     <Bar dataKey="مصارف" fill="#ef4444" />
